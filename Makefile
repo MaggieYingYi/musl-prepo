@@ -32,6 +32,8 @@ LIBC_OBJS = $(filter obj/src/%,$(ALL_OBJS)) $(filter obj/compat/%,$(ALL_OBJS))
 LDSO_OBJS = $(filter obj/ldso/%,$(ALL_OBJS:%.o=%.lo))
 CRT_OBJS = $(filter obj/crt/%,$(ALL_OBJS))
 
+CRT_ELFS = $(CRT_OBJS:%.o=%.o.elf)
+
 AOBJS = $(LIBC_OBJS)
 LOBJS = $(LIBC_OBJS:.o=.lo)
 GENH = obj/include/bits/alltypes.h obj/include/bits/syscall.h
@@ -53,6 +55,8 @@ CFLAGS_ALL += $(CPPFLAGS) $(CFLAGS_AUTO) $(CFLAGS)
 LDFLAGS_ALL = $(LDFLAGS_AUTO) $(LDFLAGS)
 
 AR      = $(CROSS_COMPILE)ar
+ARCHIVE = archive.py
+LINKER  = link.py
 RANLIB  = $(CROSS_COMPILE)ranlib
 INSTALL = $(srcdir)/tools/install.sh
 
@@ -86,7 +90,7 @@ all:
 
 else
 
-all: $(ALL_LIBS) $(ALL_TOOLS)
+all: $(ALL_LIBS) $(ALL_TOOLS) $(CRT_ELFS)
 
 OBJ_DIRS = $(sort $(patsubst %/,%,$(dir $(ALL_LIBS) $(ALL_TOOLS) $(ALL_OBJS) $(GENH) $(GENH_INT))) obj/include)
 
@@ -105,11 +109,16 @@ obj/include/bits/syscall.h: $(srcdir)/arch/$(ARCH)/bits/syscall.h.in
 obj/src/internal/version.h: $(wildcard $(srcdir)/VERSION $(srcdir)/.git)
 	printf '#define VERSION "%s"\n' "$$(cd $(srcdir); sh tools/version.sh)" > $@
 
+REPO2OBJ_CMD = repo2obj -o $@ $<
+
 obj/src/internal/version.o obj/src/internal/version.lo: obj/src/internal/version.h
 
 obj/crt/rcrt1.o obj/ldso/dlstart.lo obj/ldso/dynlink.lo: $(srcdir)/src/internal/dynlink.h $(srcdir)/arch/$(ARCH)/reloc.h
 
 obj/crt/crt1.o obj/crt/scrt1.o obj/crt/rcrt1.o obj/ldso/dlstart.lo: $(srcdir)/arch/$(ARCH)/crt_arch.h
+
+obj/crt/%.o.elf : obj/crt/%.o
+	$(REPO2OBJ_CMD)
 
 obj/crt/rcrt1.o: $(srcdir)/ldso/dlstart.c
 
@@ -131,7 +140,7 @@ $(CRT_OBJS): CFLAGS_ALL += -DCRT
 
 $(LOBJS) $(LDSO_OBJS): CFLAGS_ALL += -fPIC
 
-CC_CMD = $(CC) $(CFLAGS_ALL) -c -o $@ $<
+CC_CMD = $(CC) $(CFLAGS_ALL) -target x86_64-pc-linux-gnu-repo -c -o $@ $<
 
 # Choose invocation of assembler to be used
 ifeq ($(ADD_CFI),yes)
@@ -159,17 +168,17 @@ obj/%.lo: $(srcdir)/%.c $(GENH) $(IMPH)
 	$(CC_CMD)
 
 lib/libc.so: $(LOBJS) $(LDSO_OBJS)
-	$(CC) $(CFLAGS_ALL) $(LDFLAGS_ALL) -nostdlib -shared \
+	$(LINKER) $(CFLAGS_ALL) $(LDFLAGS_ALL) -nostdlib -shared \
 	-Wl,-e,_dlstart -o $@ $(LOBJS) $(LDSO_OBJS) $(LIBCC)
 
 lib/libc.a: $(AOBJS)
 	rm -f $@
-	$(AR) rc $@ $(AOBJS)
+	$(ARCHIVE) rc $@ $(AOBJS)
 	$(RANLIB) $@
 
 $(EMPTY_LIBS):
 	rm -f $@
-	$(AR) rc $@
+	$(ARCHIVE) rc $@
 
 lib/%.o: obj/crt/$(ARCH)/%.o
 	cp $< $@
@@ -229,7 +238,7 @@ musl-%.tar.gz: .git
 endif
 
 clean:
-	rm -rf obj lib
+	rm -rf obj lib clang.db
 
 distclean: clean
 	rm -f config.mak
