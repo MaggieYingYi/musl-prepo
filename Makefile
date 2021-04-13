@@ -55,8 +55,8 @@ CFLAGS_ALL += $(CPPFLAGS) $(CFLAGS_AUTO) $(CFLAGS)
 LDFLAGS_ALL = $(LDFLAGS_AUTO) $(LDFLAGS)
 
 AR      = $(CROSS_COMPILE)ar
-ARCHIVE = archive.py
-LINKER  = link.py
+ARCHIVE = /usr/share/repo/archive.py
+LINKER  = /usr/share/repo/link.py
 RANLIB  = $(CROSS_COMPILE)ranlib
 INSTALL = $(srcdir)/tools/install.sh
 
