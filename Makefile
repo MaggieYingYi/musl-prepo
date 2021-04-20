@@ -19,13 +19,42 @@ syslibdir = /lib
 
 MALLOC_DIR = mallocng
 SRC_DIRS = $(addprefix $(srcdir)/,src/* src/malloc/$(MALLOC_DIR) crt ldso $(COMPAT_SRC_DIRS))
+REMOVE_ARCH_SRCS = ./crt/x86_64/crti.s \
+		   ./src/fenv/x86_64/fenv.s \
+		   ./src/ldso/x86_64/dlsym.s \
+		   ./src/ldso/x86_64/tlsdesc.s \
+		   ./src/math/x86_64/acosl.s \
+		   ./src/math/x86_64/asinl.s \
+		   ./src/math/x86_64/atan2l.s \
+		   ./src/math/x86_64/atanl.s \
+		   ./src/math/x86_64/exp2l.s \
+		   ./src/math/x86_64/expl.s \
+		   ./src/math/x86_64/floorl.s \
+		   ./src/math/x86_64/log10l.s \
+		   ./src/math/x86_64/log1pl.s \
+		   ./src/math/x86_64/log2l.s \
+		   ./src/math/x86_64/logl.s \
+		   ./src/process/x86_64/vfork.s \
+		   ./src/setjmp/x86_64/longjmp.s \
+		   ./src/setjmp/x86_64/setjmp.s \
+		   ./src/signal/x86_64/restore.s \
+		   ./src/signal/x86_64/sigsetjmp.s \
+		   ./src/string/x86_64/memcpy.s \
+		   ./src/string/x86_64/memmove.s \
+		   ./src/string/x86_64/memset.s \
+		   ./src/thread/x86_64/__set_thread_area.s \
+		   ./src/thread/x86_64/__unmapself.s \
+		   ./src/thread/x86_64/clone.s \
+		   ./src/thread/x86_64/syscall_cp.s
+REMOVE_ARCH_OBJS = $(patsubst $(srcdir)/%,%.o,$(basename $(REMOVE_ARCH_SRCS)))
 BASE_GLOBS = $(addsuffix /*.c,$(SRC_DIRS))
 ARCH_GLOBS = $(addsuffix /$(ARCH)/*.[csS],$(SRC_DIRS))
 BASE_SRCS = $(sort $(wildcard $(BASE_GLOBS)))
 ARCH_SRCS = $(sort $(wildcard $(ARCH_GLOBS)))
 BASE_OBJS = $(patsubst $(srcdir)/%,%.o,$(basename $(BASE_SRCS)))
 ARCH_OBJS = $(patsubst $(srcdir)/%,%.o,$(basename $(ARCH_SRCS)))
-REPLACED_OBJS = $(sort $(subst /$(ARCH)/,/,$(ARCH_OBJS)))
+ALL_ARCH_OBJS = $(ARCH_OBJS) $(REMOVE_ARCH_OBJS)
+REPLACED_OBJS = $(sort $(subst /$(ARCH)/,/,$(ALL_ARCH_OBJS)))
 ALL_OBJS = $(addprefix obj/, $(filter-out $(REPLACED_OBJS), $(sort $(BASE_OBJS) $(ARCH_OBJS))))
 
 LIBC_OBJS = $(filter obj/src/%,$(ALL_OBJS)) $(filter obj/compat/%,$(ALL_OBJS))
@@ -33,6 +62,11 @@ LDSO_OBJS = $(filter obj/ldso/%,$(ALL_OBJS:%.o=%.lo))
 CRT_OBJS = $(filter obj/crt/%,$(ALL_OBJS))
 
 CRT_ELFS = $(CRT_OBJS:%.o=%.o.elf)
+CRT_TICKETS = obj/crt/crt1_asm.o
+CRT_OBJECTS = $(CRT_TICKETS:%.o=%.o.elf)
+TICKETS = obj/memcpy.o obj/memset.o obj/__set_thread_area.o
+OBJECTS = $(TICKETS:%.o=%.o.elf)
+TEXTUAL_DB = lib/musl-prepo.json
 
 AOBJS = $(LIBC_OBJS)
 LOBJS = $(LIBC_OBJS:.o=.lo)
@@ -67,11 +101,11 @@ ALL_INCLUDES = $(sort $(INCLUDES:$(srcdir)/%=%) $(GENH:obj/%=%) $(ARCH_INCLUDES:
 
 EMPTY_LIB_NAMES = m rt pthread crypt util xnet resolv dl
 EMPTY_LIBS = $(EMPTY_LIB_NAMES:%=lib/lib%.a)
-CRT_LIBS = $(addprefix lib/,$(notdir $(CRT_OBJS)))
+CRT_LIBS = $(addprefix lib/,$(notdir $(CRT_OBJS))) $(addprefix lib/,$(notdir $(CRT_ELFS))) $(addprefix lib/,$(notdir $(CRT_OBJECTS)))
 STATIC_LIBS = lib/libc.a
 SHARED_LIBS = lib/libc.so
 TOOL_LIBS = lib/musl-gcc.specs
-ALL_LIBS = $(CRT_LIBS) $(STATIC_LIBS) $(SHARED_LIBS) $(EMPTY_LIBS) $(TOOL_LIBS)
+ALL_LIBS = $(CRT_LIBS) $(STATIC_LIBS) $(SHARED_LIBS) $(EMPTY_LIBS) $(TOOL_LIBS) $(TEXTUAL_DB)
 ALL_TOOLS = obj/musl-gcc
 
 WRAPCC_GCC = gcc
@@ -90,7 +124,34 @@ all:
 
 else
 
-all: $(ALL_LIBS) $(ALL_TOOLS) $(CRT_ELFS)
+all:
+	$(MAKE) clang.db
+	$(MAKE) musl-prepo
+	$(MAKE) $(TEXTUAL_DB)
+
+musl-prepo: $(CRT_OBJECTS) $(OBJECTS) $(ALL_LIBS) $(ALL_TOOLS) $(CRT_ELFS)
+
+clang.db: src/musl-prepo.json
+	-rm -f $@
+	pstore-import $@ $<
+
+REPO2OBJ_CMD = repo2obj -o $@ $<
+
+obj/crt/crt1_asm.o: clang.db
+	mkdir -p obj/crt
+	repo-create-ticket --output=$@ --repo=$< 0d89c794f89f75747df70d0f6b2832ed
+
+obj/memcpy.o: clang.db
+	repo-create-ticket --output=$@ --repo=$< 4c9f1d7ecaca97ea2d3ff025d2ac3f23
+
+obj/memset.o: clang.db
+	repo-create-ticket --output=$@ --repo=$< e0adc5a2801f47044a03f962ec0634e8
+
+obj/__set_thread_area.o: clang.db
+	repo-create-ticket --output=$@ --repo=$< 61823da085f534c947264e1497f73741
+
+%.o.elf: %.o
+	$(REPO2OBJ_CMD)
 
 OBJ_DIRS = $(sort $(patsubst %/,%,$(dir $(ALL_LIBS) $(ALL_TOOLS) $(ALL_OBJS) $(GENH) $(GENH_INT))) obj/include)
 
@@ -108,8 +169,6 @@ obj/include/bits/syscall.h: $(srcdir)/arch/$(ARCH)/bits/syscall.h.in
 
 obj/src/internal/version.h: $(wildcard $(srcdir)/VERSION $(srcdir)/.git)
 	printf '#define VERSION "%s"\n' "$$(cd $(srcdir); sh tools/version.sh)" > $@
-
-REPO2OBJ_CMD = repo2obj -o $@ $<
 
 obj/src/internal/version.o obj/src/internal/version.lo: obj/src/internal/version.h
 
@@ -171,9 +230,12 @@ lib/libc.so: $(LOBJS) $(LDSO_OBJS)
 	$(LINKER) $(CFLAGS_ALL) $(LDFLAGS_ALL) -nostdlib -shared \
 	-Wl,-e,_dlstart -o $@ $(LOBJS) $(LDSO_OBJS) $(LIBCC)
 
-lib/libc.a: $(AOBJS)
+$(TEXTUAL_DB): clang.db
+	pstore-export clang.db > $@
+
+lib/libc.a: $(AOBJS) $(OBJECTS)
 	rm -f $@
-	$(ARCHIVE) rc $@ $(AOBJS)
+	$(ARCHIVE) rc $@ $(AOBJS) $(OBJECTS)
 	$(RANLIB) $@
 
 $(EMPTY_LIBS):
@@ -184,6 +246,9 @@ lib/%.o: obj/crt/$(ARCH)/%.o
 	cp $< $@
 
 lib/%.o: obj/crt/%.o
+	cp $< $@
+
+lib/%.o.elf : obj/crt/%.o.elf
 	cp $< $@
 
 lib/musl-gcc.specs: $(srcdir)/tools/musl-gcc.specs.sh config.mak
@@ -238,7 +303,7 @@ musl-%.tar.gz: .git
 endif
 
 clean:
-	rm -rf obj lib clang.db
+	rm -rf obj lib clang.db $(TEXTUAL_DB)
 
 distclean: clean
 	rm -f config.mak
