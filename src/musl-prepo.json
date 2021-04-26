@@ -9,9 +9,6 @@
         "_DYNAMIC",
         "_start",
         "_start_c",
-        "__memcpy_fwd",
-        "memcpy",
-        "memset",
         "__set_thread_area"
       ],
       "fragments":{
@@ -33,113 +30,6 @@
               {"name":3,"type":4,"is_weak":false,"offset":18,"addend":-4} //"_start_c"
             ]
           }
-        },
-        "e480645adbaa6a3887bb6bdf8af77f44":{
-          "text":{
-           // .global memcpy
-           // .global __memcpy_fwd
-           // .hidden __memcpy_fwd
-           // .type memcpy,@function
-           // memcpy:
-           // __memcpy_fwd:
-           //        mov %rdi,%rax
-           //        cmp $8,%rdx
-           //        jc 1f
-           //        test $7,%edi
-           //        jz 1f
-           //2:      movsb
-           //        dec %rdx
-           //        test $7,%edi
-           //        j nz 2b
-           //1:      mov %rdx,%rcx
-           //        shr $3,%rcx
-           //        rep
-           //        movsq
-           //        and $7,%edx
-           //        jz 1f
-           //2:      movsb
-           //        dec %edx
-           //        jnz 2b
-           //1:      ret
-            "data":"SIn4SIP6CHIU98cHAAAAdAykSP/K98cHAAAAdfRIidFIwekD80ilg+IHdAWk/8p1+8M="
-	   }
-        },
-        "5babaa4b1961762edd28b59fad383205":{
-          "text":{
-          // .global memset
-          // .type memset,@function
-          // memset:
-          //	   movzbq %sil,%rax
-          //	   mov $0x101010101010101,%r8
-          //	   imul %r8,%rax
-          //
-          //	   cmp $126,%rdx
-          //	   ja 2f
-          //
-          //	   test %edx,%edx
-          //	   jz 1f
-          //
-          //	   mov %sil,(%rdi)
-          //	   mov %sil,-1(%rdi,%rdx)
-          //	   cmp $2,%edx
-          //	   jbe 1f
-          //
-          //	   mov %ax,1(%rdi)
-          //	   mov %ax,(-1-2)(%rdi,%rdx)
-          //	   cmp $6,%edx
-          //	   jbe 1f
-          //
-          //	   mov %eax,(1+2)(%rdi)
-          //	   mov %eax,(-1-2-4)(%rdi,%rdx)
-          //	   cmp $14,%edx
-          //	   jbe 1f
-          //
-          //	   mov %rax,(1+2+4)(%rdi)
-          //	   mov %rax,(-1-2-4-8)(%rdi,%rdx)
-          //	   cmp $30,%edx
-          //	   jbe 1f
-          //
-          //	   mov %rax,(1+2+4+8)(%rdi)
-          //	   mov %rax,(1+2+4+8+8)(%rdi)
-          //	   mov %rax,(-1-2-4-8-16)(%rdi,%rdx)
-          //	   mov %rax,(-1-2-4-8-8)(%rdi,%rdx)
-          //	   cmp $62,%edx
-          //	   jbe 1f
-          //
-          //	   mov %rax,(1+2+4+8+16)(%rdi)
-          //	   mov %rax,(1+2+4+8+16+8)(%rdi)
-          //	   mov %rax,(1+2+4+8+16+16)(%rdi)
-          //	   mov %rax,(1+2+4+8+16+24)(%rdi)
-          //	   mov %rax,(-1-2-4-8-16-32)(%rdi,%rdx)
-          //	   mov %rax,(-1-2-4-8-16-24)(%rdi,%rdx)
-          //	   mov %rax,(-1-2-4-8-16-16)(%rdi,%rdx)
-          //	   mov %rax,(-1-2-4-8-16-8)(%rdi,%rdx)
-          //
-          //	   1:	mov %rdi,%rax
-          //	   	ret
-          //
-          //	   2:	test $15,%edi
-          //	   mov %rdi,%r8
-          //	   mov %rax,-8(%rdi,%rdx)
-          //	   mov %rdx,%rcx
-          //	   jnz 2f
-          //
-          //	   1:	shr $3,%rcx
-          //	   	rep
-          //	   	stosq
-          //	   	mov %r8,%rax
-          //	   	ret
-          //
-          //	   2:	xor %edx,%edx
-          //	   	sub %edi,%edx
-          //	   	and $15,%edx
-          //	   	mov %rax,(%rdi)
-          //	   	mov %rax,8(%rdi)
-          //	   	sub %rdx,%rcx
-          //	   	add %rdx,%rdi
-          //	   	jmp 1b
-            "data":"SA+2xkm4AQEBAQEBAQFJD6/ASIP6fnd4hdJ0cECIN0CIdBf/g/oCdmNmiUcBZolEF/2D+gZ2VYlHA4lEF/mD+g52SUiJRwdIiUQX8YP6HnY7SIlHD0iJRxdIiUQX4UiJRBfpg/o+diRIiUcfSIlHJ0iJRy9IiUc3SIlEF8FIiUQXyUiJRBfRSIlEF9lIifjD98cPAAAASYn4SIlEF/hIidF1C0jB6QPzSKtMicDDMdIp+oPiD0iJB0iJRwhIKdFIAdfr3w=="
-           }
         },
         "461387b22c520e0c42df3c56ab2aa511":{
           "text":{
@@ -164,23 +54,10 @@
             {"digest":"1b001e16f7b94e70b0d44714558ea9f5","name":2,"linkage":"external"} //"_start"
           ]
         },
-        "4c9f1d7ecaca97ea2d3ff025d2ac3f23":{
-          "triple":0, //"x86_64-pc-linux-gnu-repo"
-          "definitions":[
-            {"digest":"e480645adbaa6a3887bb6bdf8af77f44","name":4,"linkage":"external","visibility":"hidden"}, //"__memcpy_fwd"
-            {"digest":"e480645adbaa6a3887bb6bdf8af77f44","name":5,"linkage":"external"} //"memcpy"
-          ]
-        },
-        "e0adc5a2801f47044a03f962ec0634e8":{
-          "triple":0, //"x86_64-pc-linux-gnu-repo"
-          "definitions":[
-            {"digest":"5babaa4b1961762edd28b59fad383205","name":6,"linkage":"external"} //"memset"
-          ]
-        },
         "61823da085f534c947264e1497f73741":{
           "triple":0, //"x86_64-pc-linux-gnu-repo"
           "definitions":[
-            {"digest":"461387b22c520e0c42df3c56ab2aa511","name":7,"linkage":"external","visibility":"hidden"} //"__set_thread_area"
+            {"digest":"461387b22c520e0c42df3c56ab2aa511","name":4,"linkage":"external","visibility":"hidden"} //"__set_thread_area"
           ]
         }
       }

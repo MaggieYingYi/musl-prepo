@@ -39,9 +39,7 @@ REMOVE_ARCH_SRCS = ./crt/x86_64/crti.s \
 		   ./src/setjmp/x86_64/setjmp.s \
 		   ./src/signal/x86_64/restore.s \
 		   ./src/signal/x86_64/sigsetjmp.s \
-		   ./src/string/x86_64/memcpy.s \
 		   ./src/string/x86_64/memmove.s \
-		   ./src/string/x86_64/memset.s \
 		   ./src/thread/x86_64/__set_thread_area.s \
 		   ./src/thread/x86_64/__unmapself.s \
 		   ./src/thread/x86_64/clone.s \
@@ -64,7 +62,7 @@ CRT_OBJS = $(filter obj/crt/%,$(ALL_OBJS))
 CRT_ELFS = $(CRT_OBJS:%.o=%.o.elf)
 CRT_TICKETS = obj/crt/crt1_asm.o
 CRT_OBJECTS = $(CRT_TICKETS:%.o=%.o.elf)
-TICKETS = obj/memcpy.o obj/memset.o obj/__set_thread_area.o
+TICKETS = obj/__set_thread_area.o
 OBJECTS = $(TICKETS:%.o=%.o.elf)
 TEXTUAL_DB = lib/musl-prepo.json
 
@@ -140,12 +138,6 @@ REPO2OBJ_CMD = repo2obj -o $@ $<
 obj/crt/crt1_asm.o: clang.db
 	mkdir -p obj/crt
 	repo-create-ticket --output=$@ --repo=$< 0d89c794f89f75747df70d0f6b2832ed
-
-obj/memcpy.o: clang.db
-	repo-create-ticket --output=$@ --repo=$< 4c9f1d7ecaca97ea2d3ff025d2ac3f23
-
-obj/memset.o: clang.db
-	repo-create-ticket --output=$@ --repo=$< e0adc5a2801f47044a03f962ec0634e8
 
 obj/__set_thread_area.o: clang.db
 	repo-create-ticket --output=$@ --repo=$< 61823da085f534c947264e1497f73741
