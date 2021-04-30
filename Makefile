@@ -19,52 +19,18 @@ syslibdir = /lib
 
 MALLOC_DIR = mallocng
 SRC_DIRS = $(addprefix $(srcdir)/,src/* src/malloc/$(MALLOC_DIR) crt ldso $(COMPAT_SRC_DIRS))
-REMOVE_ARCH_SRCS = ./crt/x86_64/crti.s \
-		   ./src/fenv/x86_64/fenv.s \
-		   ./src/ldso/x86_64/dlsym.s \
-		   ./src/ldso/x86_64/tlsdesc.s \
-		   ./src/math/x86_64/acosl.s \
-		   ./src/math/x86_64/asinl.s \
-		   ./src/math/x86_64/atan2l.s \
-		   ./src/math/x86_64/atanl.s \
-		   ./src/math/x86_64/exp2l.s \
-		   ./src/math/x86_64/expl.s \
-		   ./src/math/x86_64/floorl.s \
-		   ./src/math/x86_64/log10l.s \
-		   ./src/math/x86_64/log1pl.s \
-		   ./src/math/x86_64/log2l.s \
-		   ./src/math/x86_64/logl.s \
-		   ./src/process/x86_64/vfork.s \
-		   ./src/setjmp/x86_64/longjmp.s \
-		   ./src/setjmp/x86_64/setjmp.s \
-		   ./src/signal/x86_64/restore.s \
-		   ./src/signal/x86_64/sigsetjmp.s \
-		   ./src/string/x86_64/memmove.s \
-		   ./src/thread/x86_64/__set_thread_area.s \
-		   ./src/thread/x86_64/__unmapself.s \
-		   ./src/thread/x86_64/clone.s \
-		   ./src/thread/x86_64/syscall_cp.s
-REMOVE_ARCH_OBJS = $(patsubst $(srcdir)/%,%.o,$(basename $(REMOVE_ARCH_SRCS)))
 BASE_GLOBS = $(addsuffix /*.c,$(SRC_DIRS))
 ARCH_GLOBS = $(addsuffix /$(ARCH)/*.[csS],$(SRC_DIRS))
 BASE_SRCS = $(sort $(wildcard $(BASE_GLOBS)))
 ARCH_SRCS = $(sort $(wildcard $(ARCH_GLOBS)))
 BASE_OBJS = $(patsubst $(srcdir)/%,%.o,$(basename $(BASE_SRCS)))
 ARCH_OBJS = $(patsubst $(srcdir)/%,%.o,$(basename $(ARCH_SRCS)))
-ALL_ARCH_OBJS = $(ARCH_OBJS) $(REMOVE_ARCH_OBJS)
-REPLACED_OBJS = $(sort $(subst /$(ARCH)/,/,$(ALL_ARCH_OBJS)))
+REPLACED_OBJS = $(sort $(subst /$(ARCH)/,/,$(ARCH_OBJS)))
 ALL_OBJS = $(addprefix obj/, $(filter-out $(REPLACED_OBJS), $(sort $(BASE_OBJS) $(ARCH_OBJS))))
 
 LIBC_OBJS = $(filter obj/src/%,$(ALL_OBJS)) $(filter obj/compat/%,$(ALL_OBJS))
 LDSO_OBJS = $(filter obj/ldso/%,$(ALL_OBJS:%.o=%.lo))
 CRT_OBJS = $(filter obj/crt/%,$(ALL_OBJS))
-
-CRT_ELFS = $(CRT_OBJS:%.o=%.o.elf)
-CRT_TICKETS = obj/crt/crt1_asm.o
-CRT_OBJECTS = $(CRT_TICKETS:%.o=%.o.elf)
-TICKETS = obj/__set_thread_area.o
-OBJECTS = $(TICKETS:%.o=%.o.elf)
-TEXTUAL_DB = lib/musl-prepo.json
 
 AOBJS = $(LIBC_OBJS)
 LOBJS = $(LIBC_OBJS:.o=.lo)
@@ -87,8 +53,6 @@ CFLAGS_ALL += $(CPPFLAGS) $(CFLAGS_AUTO) $(CFLAGS)
 LDFLAGS_ALL = $(LDFLAGS_AUTO) $(LDFLAGS)
 
 AR      = $(CROSS_COMPILE)ar
-ARCHIVE = /usr/share/repo/archive.py
-LINKER  = /usr/share/repo/link.py
 RANLIB  = $(CROSS_COMPILE)ranlib
 INSTALL = $(srcdir)/tools/install.sh
 
@@ -99,11 +63,11 @@ ALL_INCLUDES = $(sort $(INCLUDES:$(srcdir)/%=%) $(GENH:obj/%=%) $(ARCH_INCLUDES:
 
 EMPTY_LIB_NAMES = m rt pthread crypt util xnet resolv dl
 EMPTY_LIBS = $(EMPTY_LIB_NAMES:%=lib/lib%.a)
-CRT_LIBS = $(addprefix lib/,$(notdir $(CRT_OBJS))) $(addprefix lib/,$(notdir $(CRT_ELFS))) $(addprefix lib/,$(notdir $(CRT_OBJECTS)))
+CRT_LIBS = $(addprefix lib/,$(notdir $(CRT_OBJS)))
 STATIC_LIBS = lib/libc.a
 SHARED_LIBS = lib/libc.so
 TOOL_LIBS = lib/musl-gcc.specs
-ALL_LIBS = $(CRT_LIBS) $(STATIC_LIBS) $(SHARED_LIBS) $(EMPTY_LIBS) $(TOOL_LIBS) $(TEXTUAL_DB)
+ALL_LIBS = $(CRT_LIBS) $(STATIC_LIBS) $(SHARED_LIBS) $(EMPTY_LIBS) $(TOOL_LIBS)
 ALL_TOOLS = obj/musl-gcc
 
 WRAPCC_GCC = gcc
@@ -121,29 +85,8 @@ all:
 	@exit 1
 
 else
-
-all:
-	$(MAKE) clang.db
-	$(MAKE) musl-prepo
-	$(MAKE) $(TEXTUAL_DB)
-
-musl-prepo: $(CRT_OBJECTS) $(OBJECTS) $(ALL_LIBS) $(ALL_TOOLS) $(CRT_ELFS)
-
-clang.db: src/musl-prepo.json
-	-rm -f $@
-	pstore-import $@ $<
-
-REPO2OBJ_CMD = repo2obj -o $@ $<
-
-obj/crt/crt1_asm.o: clang.db
-	mkdir -p obj/crt
-	repo-create-ticket --output=$@ --repo=$< 0d89c794f89f75747df70d0f6b2832ed
-
-obj/__set_thread_area.o: clang.db
-	repo-create-ticket --output=$@ --repo=$< 61823da085f534c947264e1497f73741
-
-%.o.elf: %.o
-	$(REPO2OBJ_CMD)
+#YY: added all-repo and all-repo2obj.
+all: $(ALL_LIBS) $(ALL_TOOLS) all-repo all-repo2obj
 
 OBJ_DIRS = $(sort $(patsubst %/,%,$(dir $(ALL_LIBS) $(ALL_TOOLS) $(ALL_OBJS) $(GENH) $(GENH_INT))) obj/include)
 
@@ -168,9 +111,6 @@ obj/crt/rcrt1.o obj/ldso/dlstart.lo obj/ldso/dynlink.lo: $(srcdir)/src/internal/
 
 obj/crt/crt1.o obj/crt/scrt1.o obj/crt/rcrt1.o obj/ldso/dlstart.lo: $(srcdir)/arch/$(ARCH)/crt_arch.h
 
-obj/crt/%.o.elf : obj/crt/%.o
-	$(REPO2OBJ_CMD)
-
 obj/crt/rcrt1.o: $(srcdir)/ldso/dlstart.c
 
 obj/crt/Scrt1.o obj/crt/rcrt1.o: CFLAGS_ALL += -fPIC
@@ -191,7 +131,7 @@ $(CRT_OBJS): CFLAGS_ALL += -DCRT
 
 $(LOBJS) $(LDSO_OBJS): CFLAGS_ALL += -fPIC
 
-CC_CMD = $(CC) $(CFLAGS_ALL) -target x86_64-pc-linux-gnu-repo -c -o $@ $<
+CC_CMD = $(CC) $(CFLAGS_ALL) -c -o $@ $<
 
 # Choose invocation of assembler to be used
 ifeq ($(ADD_CFI),yes)
@@ -219,28 +159,22 @@ obj/%.lo: $(srcdir)/%.c $(GENH) $(IMPH)
 	$(CC_CMD)
 
 lib/libc.so: $(LOBJS) $(LDSO_OBJS)
-	$(LINKER) $(CFLAGS_ALL) $(LDFLAGS_ALL) -nostdlib -shared \
+	$(CC) $(CFLAGS_ALL) $(LDFLAGS_ALL) -nostdlib -shared \
 	-Wl,-e,_dlstart -o $@ $(LOBJS) $(LDSO_OBJS) $(LIBCC)
 
-$(TEXTUAL_DB): clang.db
-	pstore-export clang.db > $@
-
-lib/libc.a: $(AOBJS) $(OBJECTS)
+lib/libc.a: $(AOBJS)
 	rm -f $@
-	$(ARCHIVE) rc $@ $(AOBJS) $(OBJECTS)
+	$(AR) rc $@ $(AOBJS)
 	$(RANLIB) $@
 
 $(EMPTY_LIBS):
 	rm -f $@
-	$(ARCHIVE) rc $@
+	$(AR) rc $@
 
 lib/%.o: obj/crt/$(ARCH)/%.o
 	cp $< $@
 
 lib/%.o: obj/crt/%.o
-	cp $< $@
-
-lib/%.o.elf : obj/crt/%.o.elf
 	cp $< $@
 
 lib/musl-gcc.specs: $(srcdir)/tools/musl-gcc.specs.sh config.mak
@@ -284,7 +218,8 @@ install-headers: $(ALL_INCLUDES:include/%=$(DESTDIR)$(includedir)/%)
 
 install-tools: $(ALL_TOOLS:obj/%=$(DESTDIR)$(bindir)/%)
 
-install: install-libs install-headers install-tools
+#YY: added install-ticket-libs and install-repo2obj-libs.
+install: install-libs install-headers install-tools install-ticket-libs install-repo2obj-libs
 
 musl-git-%.tar.gz: .git
 	 git --git-dir=$(srcdir)/.git archive --format=tar.gz --prefix=$(patsubst %.tar.gz,%,$@)/ -o $@ $(patsubst musl-git-%.tar.gz,%,$@)
@@ -293,11 +228,165 @@ musl-%.tar.gz: .git
 	 git --git-dir=$(srcdir)/.git archive --format=tar.gz --prefix=$(patsubst %.tar.gz,%,$@)/ -o $@ v$(patsubst musl-%.tar.gz,%,$@)
 
 endif
-
+#YY: added include/linux and clang.db.
 clean:
-	rm -rf obj lib clang.db $(TEXTUAL_DB)
+	rm -rf obj lib include/linux clang.db
 
 distclean: clean
 	rm -f config.mak
 
 .PHONY: all clean install install-libs install-headers install-tools
+
+#
+# YY: build for the repo target.
+#
+EXCLUDED_SRCS = ./crt/x86_64/crti.s \
+		./crt/x86_64/crtn.s \
+		./src/fenv/x86_64/fenv.s \
+                ./src/ldso/x86_64/dlsym.s \
+                ./src/ldso/x86_64/tlsdesc.s \
+                ./src/math/x86_64/acosl.s \
+                ./src/math/x86_64/asinl.s \
+                ./src/math/x86_64/atan2l.s \
+                ./src/math/x86_64/atanl.s \
+                ./src/math/x86_64/exp2l.s \
+                ./src/math/x86_64/expl.s \
+                ./src/math/x86_64/floorl.s \
+                ./src/math/x86_64/log10l.s \
+                ./src/math/x86_64/log1pl.s \
+                ./src/math/x86_64/log2l.s \
+                ./src/math/x86_64/logl.s \
+                ./src/process/x86_64/vfork.s \
+                ./src/setjmp/x86_64/longjmp.s \
+                ./src/setjmp/x86_64/setjmp.s \
+                ./src/signal/x86_64/restore.s \
+                ./src/signal/x86_64/sigsetjmp.s \
+                ./src/string/x86_64/memcpy.s \
+                ./src/string/x86_64/memmove.s \
+                ./src/string/x86_64/memset.s \
+                ./src/thread/x86_64/__unmapself.s \
+                ./src/thread/x86_64/clone.s \
+                ./src/thread/x86_64/syscall_cp.s
+EXCLUDED_ALL = ./crt/Scrt1.c \
+		./crt/rcrt1.c \
+		./ldso/dlstart.c \
+		./src/thread/x86_64/__set_thread_area.s \
+		$(EXCLUDED_SRCS)
+EXCLUDED_TICKETS = $(addprefix obj/, $(patsubst $(srcdir)/%,%.t,$(basename $(EXCLUDED_ALL))))
+REPLACEMENT_GENERIC = $(sort $(subst /$(ARCH)/,/,$(EXCLUDED_SRCS)))
+REPLACEMENT_GENERIC_TICKETS = $(addprefix obj/, $(patsubst $(srcdir)/%,%.t,$(basename $(REPLACEMENT_GENERIC))))
+ALL_TICKETS = $(filter-out $(EXCLUDED_TICKETS), $(sort $(ALL_OBJS:.o=.t) $(REPLACEMENT_GENERIC_TICKETS)))
+
+JSON_TICKET = obj/src/thread/__set_thread_area.t
+JSON_CRT_TICKET = obj/crt/crt1_asm.t
+DB = lib/clang.db
+TEXTUAL_DB = lib/musl-prepo.json
+
+LIBC_TICKETS = $(JSON_TICKET) $(filter obj/src/%,$(ALL_TICKETS)) $(filter obj/compat/%,$(ALL_TICKETS))
+CRT_TICKETS = $(JSON_CRT_TICKET) $(filter obj/crt/%,$(ALL_TICKETS))
+ATICKETS = $(LIBC_TICKETS)
+
+LINUX_INCLUDES = include/linux/futex.h include/linux/version.h
+
+CRT_TICKET_LIBS = $(addprefix lib/,$(notdir $(CRT_TICKETS)))
+STATIC_TICKET_LIBS = lib/libc_repo.a
+ALL_TICKET_LIBS = $(CRT_TICKET_LIBS) $(STATIC_TICKET_LIBS) $(TEXTUAL_DB) $(DB)
+
+all-repo:
+	$(MAKE) clang.db
+	$(MAKE) repo-installs
+
+repo-installs: $(ALL_TICKET_LIBS) $(LINUX_INCLUDES)
+
+clang.db: src/musl-prepo.json
+	-rm -f $@
+	pstore-import $@ $<
+
+$(JSON_CRT_TICKET): clang.db
+	mkdir -p obj/crt
+	repo-create-ticket --output=$@ --repo=$< 0d89c794f89f75747df70d0f6b2832ed
+
+$(JSON_TICKET): clang.db
+	mkdir -p obj/src/thread
+	repo-create-ticket --output=$@ --repo=$< 61823da085f534c947264e1497f73741
+
+obj/src/internal/version.t: obj/src/internal/version.h
+
+obj/crt/crt1.t: CFLAGS_ALL += -D__REPO__
+
+MEMOPS_TICKETS = $(filter %/memcpy.t %/memmove.t %/memcmp.t %/memset.t, $(LIBC_TICKETS))
+$(MEMOPS_TICKETS): CFLAGS_ALL += $(CFLAGS_MEMOPS)
+
+NOSSP_TICKETS = $(CRT_TICKETS) $(filter %/__libc_start_main.t \
+		%/__init_tls.t %/__stack_chk_fail.t \
+		%/__set_thread_area.t %/memset.t %/memcpy.t \
+		, $(LIBC_TICKETS))
+$(NOSSP_TICKETS): CFLAGS_ALL += $(CFLAGS_NOSSP)
+
+$(CRT_TICKETS): CFLAGS_ALL += -DCRT
+
+$(ALL_TICKETS) $(CRT_TICKETS):  CFLAGS_ALL +=  -target x86_64-pc-linux-gnu-repo
+
+obj/%.t: $(srcdir)/%.s
+	$(AS_CMD)
+
+obj/%.t: $(srcdir)/%.S
+	$(CC_CMD)
+
+obj/%.t: $(srcdir)/%.c $(GENH) $(IMPH)
+	$(CC_CMD)
+
+$(STATIC_TICKET_LIBS): $(ATICKETS)
+	rm -f $@
+	$(AR) rc $@ $(ATICKETS)
+	$(RANLIB) $@
+
+lib/%.t: obj/crt/%.t
+	cp $< $@
+
+$(DB): clang.db $(STATIC_TICKET_LIBS)
+	cp clang.db $@
+
+$(TEXTUAL_DB): clang.db $(STATIC_TICKET_LIBS)
+	pstore-export clang.db > $@
+
+include/linux/version.h: /usr/include/linux/version.h
+	mkdir -p include/linux
+	cp -f $< $@
+
+include/linux/futex.h: src/internal/futex.h
+	mkdir -p include/linux
+	cp -f $< $@
+
+install-ticket-libs: $(ALL_TICKET_LIBS:lib/%=$(DESTDIR)$(libdir)/%)
+
+#
+# YY: generate the ELF library from the repo ticket files using the repo2oj tool.
+#
+
+CRT_REPO2OBJS = $(CRT_TICKETS:.t=.t.o)
+CRT_REPO2OBJ_LIBS = $(addprefix lib/,$(notdir $(CRT_REPO2OBJS)))
+STATIC_REPO2OBJ_LIBS = lib/libc_elf.a
+ALL_REPO2OBJ_LIBS= $(CRT_REPO2OBJ_LIBS) $(STATIC_REPO2OBJ_LIBS)
+ARCHIVE = /usr/share/repo/archive.py
+REPO2OBJ_CMD = repo2obj -o $@ $<
+
+.PRECIOUS: obj/crt/%.t.o
+obj/crt/%.t.o : obj/crt/%.t
+	$(REPO2OBJ_CMD)
+
+lib/%.t.o: obj/crt/%.t.o
+	mkdir -p lib
+	cp $< $@
+
+$(STATIC_REPO2OBJ_LIBS): $(ATICKETS)
+	rm -f $@
+	$(ARCHIVE) rc $@ $(ATICKETS)
+	$(RANLIB) $@
+
+all-repo2obj: $(ALL_REPO2OBJ_LIBS)
+
+install-repo2obj-libs: $(ALL_REPO2OBJ_LIBS:lib/%=$(DESTDIR)$(libdir)/%)
+
+print-%: ; @echo $*=$($*)
+
