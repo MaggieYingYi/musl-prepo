@@ -21,7 +21,7 @@ Then configure via:
 ```
 Perform the build of musl-prepo.
 ```
-make
+make -j 8
 ```
 Finally, install musl-prepo.
 ```
