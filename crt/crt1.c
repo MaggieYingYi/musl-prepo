@@ -1,9 +1,11 @@
 #include <features.h>
 #include "libc.h"
 
-//#define START "_start"
+#ifndef __REPO__
+#define START "_start"
 
-//#include "crt_arch.h"
+#include "crt_arch.h"
+#endif
 
 int main();
 weak void _init();
