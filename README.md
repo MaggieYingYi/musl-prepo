@@ -9,7 +9,7 @@ Our approach here will be to [port musl libc](http://wiki.musl-libc.org/wiki/Por
 First create the [llvm-prepo container](https://hub.docker.com/r/paulhuggett/llvm-prepo), then use the following series of commands to install various third-party tools on which the build depends.
 ```
 sudo apt-get update
-sudo apt-get install -y git python ninja-build
+sudo apt-get install -y git python
 ```
 Clone the musl-prepo project via:
 ```
