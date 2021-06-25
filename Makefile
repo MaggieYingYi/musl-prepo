@@ -241,8 +241,8 @@ distclean: clean
 # YY: build for the repo target.
 #
 EXCLUDED_SRCS = ./crt/x86_64/crti.s \
-		./crt/x86_64/crtn.s \
-		./src/fenv/x86_64/fenv.s \
+                ./crt/x86_64/crtn.s \
+                ./src/fenv/x86_64/fenv.s \
                 ./src/ldso/x86_64/dlsym.s \
                 ./src/ldso/x86_64/tlsdesc.s \
                 ./src/math/x86_64/acosl.s \
@@ -257,8 +257,6 @@ EXCLUDED_SRCS = ./crt/x86_64/crti.s \
                 ./src/math/x86_64/log2l.s \
                 ./src/math/x86_64/logl.s \
                 ./src/process/x86_64/vfork.s \
-                ./src/setjmp/x86_64/longjmp.s \
-                ./src/setjmp/x86_64/setjmp.s \
                 ./src/signal/x86_64/restore.s \
                 ./src/signal/x86_64/sigsetjmp.s \
                 ./src/string/x86_64/memcpy.s \
@@ -268,16 +266,20 @@ EXCLUDED_SRCS = ./crt/x86_64/crti.s \
                 ./src/thread/x86_64/clone.s \
                 ./src/thread/x86_64/syscall_cp.s
 EXCLUDED_ALL = ./crt/Scrt1.c \
-		./crt/rcrt1.c \
-		./ldso/dlstart.c \
-		./src/thread/x86_64/__set_thread_area.s \
-		$(EXCLUDED_SRCS)
+               ./crt/rcrt1.c \
+               ./ldso/dlstart.c \
+               ./src/thread/x86_64/__set_thread_area.s \
+               ./src/setjmp/x86_64/longjmp.s \
+               ./src/setjmp/x86_64/setjmp.s \
+               $(EXCLUDED_SRCS)
 EXCLUDED_TICKETS = $(addprefix obj/, $(patsubst $(srcdir)/%,%.t,$(basename $(EXCLUDED_ALL))))
 REPLACEMENT_GENERIC = $(sort $(subst /$(ARCH)/,/,$(EXCLUDED_SRCS)))
 REPLACEMENT_GENERIC_TICKETS = $(addprefix obj/, $(patsubst $(srcdir)/%,%.t,$(basename $(REPLACEMENT_GENERIC))))
 ALL_TICKETS = $(filter-out $(EXCLUDED_TICKETS), $(sort $(ALL_OBJS:.o=.t) $(REPLACEMENT_GENERIC_TICKETS)))
 
-JSON_TICKET = obj/src/thread/__set_thread_area.t
+JSON_TICKET = obj/src/thread/__set_thread_area.t \
+              obj/src/setjmp/x86_64/longjmp.t \
+              obj/src/setjmp/x86_64/setjmp.t
 JSON_CRT_TICKET = obj/crt/crt1_asm.t
 DB = lib/clang.db
 TEXTUAL_DB = lib/musl-prepo.json
@@ -306,9 +308,17 @@ $(JSON_CRT_TICKET): clang.db
 	mkdir -p obj/crt
 	repo-create-ticket --output=$@ --repo=$< 0d89c794f89f75747df70d0f6b2832ed
 
-$(JSON_TICKET): clang.db
+obj/src/thread/__set_thread_area.t: clang.db
 	mkdir -p obj/src/thread
 	repo-create-ticket --output=$@ --repo=$< 61823da085f534c947264e1497f73741
+
+obj/src/setjmp/x86_64/longjmp.t: clang.db
+	mkdir -p obj/src/setjmp/x86_64
+	repo-create-ticket --output=$@ --repo=$< b4969a1aad5e095bfdb567c8929359a2
+
+obj/src/setjmp/x86_64/setjmp.t: clang.db
+	mkdir -p obj/src/setjmp/x86_64
+	repo-create-ticket --output=$@ --repo=$< 140eae3767a12b28780d48ef2e02a69e
 
 obj/src/internal/version.t: obj/src/internal/version.h
 
