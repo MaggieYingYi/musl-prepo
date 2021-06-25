@@ -9,7 +9,9 @@
         "_DYNAMIC",
         "_start",
         "_start_c",
-        "__set_thread_area"
+        "__set_thread_area",
+        "setjmp",
+        "longjmp"
       ],
       "fragments":{
         "1b001e16f7b94e70b0d44714558ea9f5":{
@@ -45,7 +47,55 @@
            // 	   ret
             "data":"SIn+vwIQAAC4ngAAAA8Fww=="
           }
-	}
+        },
+        "d8866e5798e0a50c741e3f1cc110e343":{
+          "text":{
+           // .global __setjmp
+           // .global _setjmp
+           // .global setjmp
+           // .type __setjmp,@function
+           // .type _setjmp,@function
+           // .type setjmp,@function
+           // __setjmp:
+           // _setjmp:
+           // setjmp:
+           // 	mov %rbx,(%rdi)         /* rdi is jmp_buf, move registers onto it */
+           // 	mov %rbp,8(%rdi)
+           // 	mov %r12,16(%rdi)
+           // 	mov %r13,24(%rdi)
+           // 	mov %r14,32(%rdi)
+           // 	mov %r15,40(%rdi)
+           // 	lea 8(%rsp),%rdx        /* this is our rsp WITHOUT current ret addr */
+           // 	mov %rdx,48(%rdi)
+           // 	mov (%rsp),%rdx         /* save return addr ptr for new rip */
+           // 	mov %rdx,56(%rdi)
+           // 	xor %eax,%eax           /* always return 0 */
+           // 	ret
+            "data":"SIkfSIlvCEyJZxBMiW8YTIl3IEyJfyhIjVQkCEiJVzBIixQkSIlXODHAww=="
+          }
+	},
+        "9d160afa2ae306a8827cb8fed42d82cc":{
+          "text":{
+           // .global _longjmp
+           // .global longjmp
+           // .type _longjmp,@function
+           // .type longjmp,@function
+           // _longjmp:
+           // longjmp:
+           // 	xor %eax,%eax
+           // 	cmp $1,%esi             /* CF = val ? 0 : 1 */
+           // 	adc %esi,%eax           /* eax = val + !val */
+           // 	mov (%rdi),%rbx         /* rdi is the jmp_buf, restore regs from it */
+           // 	mov 8(%rdi),%rbp
+           // 	mov 16(%rdi),%r12
+           // 	mov 24(%rdi),%r13
+           // 	mov 32(%rdi),%r14
+           // 	mov 40(%rdi),%r15
+           // 	mov 48(%rdi),%rsp
+           // 	jmp *56(%rdi)           /* goto saved address without altering rsp */
+            "data":"McCD/gER8EiLH0iLbwhMi2cQTItvGEyLdyBMi38oSItnMP9nOA=="
+          }
+        }
       },
       "compilations":{
         "0d89c794f89f75747df70d0f6b2832ed":{
@@ -58,6 +108,18 @@
           "triple":0, //"x86_64-pc-linux-gnu-repo"
           "definitions":[
             {"digest":"461387b22c520e0c42df3c56ab2aa511","name":4,"linkage":"external","visibility":"hidden"} //"__set_thread_area"
+          ]
+        },
+        "140eae3767a12b28780d48ef2e02a69e":{
+          "triple":0, //"x86_64-pc-linux-gnu-repo"
+          "definitions":[
+            {"digest":"d8866e5798e0a50c741e3f1cc110e343","name":5,"linkage":"external"} //"setjmp"
+          ]
+        },
+        "b4969a1aad5e095bfdb567c8929359a2":{
+          "triple":0, //"x86_64-pc-linux-gnu-repo"
+          "definitions":[
+            {"digest":"9d160afa2ae306a8827cb8fed42d82cc","name":6,"linkage":"external"} //"longjmp"
           ]
         }
       }
