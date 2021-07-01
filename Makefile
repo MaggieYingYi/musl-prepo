@@ -263,7 +263,6 @@ EXCLUDED_SRCS = ./crt/x86_64/crti.s \
                 ./src/string/x86_64/memmove.s \
                 ./src/string/x86_64/memset.s \
                 ./src/thread/x86_64/__unmapself.s \
-                ./src/thread/x86_64/clone.s \
                 ./src/thread/x86_64/syscall_cp.s
 EXCLUDED_ALL = ./crt/Scrt1.c \
                ./crt/rcrt1.c \
@@ -271,6 +270,7 @@ EXCLUDED_ALL = ./crt/Scrt1.c \
                ./src/thread/x86_64/__set_thread_area.s \
                ./src/setjmp/x86_64/longjmp.s \
                ./src/setjmp/x86_64/setjmp.s \
+               ./src/thread/x86_64/clone.s \
                $(EXCLUDED_SRCS)
 EXCLUDED_TICKETS = $(addprefix obj/, $(patsubst $(srcdir)/%,%.t,$(basename $(EXCLUDED_ALL))))
 REPLACEMENT_GENERIC = $(sort $(subst /$(ARCH)/,/,$(EXCLUDED_SRCS)))
@@ -279,7 +279,8 @@ ALL_TICKETS = $(filter-out $(EXCLUDED_TICKETS), $(sort $(ALL_OBJS:.o=.t) $(REPLA
 
 JSON_TICKET = obj/src/thread/__set_thread_area.t \
               obj/src/setjmp/x86_64/longjmp.t \
-              obj/src/setjmp/x86_64/setjmp.t
+              obj/src/setjmp/x86_64/setjmp.t \
+              obj/src/thread/x86_64/clone.t
 JSON_CRT_TICKET = obj/crt/crt1_asm.t
 DB = lib/clang.db
 TEXTUAL_DB = lib/musl-prepo.json
@@ -319,6 +320,10 @@ obj/src/setjmp/x86_64/longjmp.t: clang.db
 obj/src/setjmp/x86_64/setjmp.t: clang.db
 	mkdir -p obj/src/setjmp/x86_64
 	repo-create-ticket --output=$@ --repo=$< 140eae3767a12b28780d48ef2e02a69e
+
+obj/src/thread/x86_64/clone.t: clang.db
+	mkdir -p obj/src/thread/x86_64/
+	repo-create-ticket --output=$@ --repo=$< 24d6c5a06191cf4bc70ba5c414005d62
 
 obj/src/internal/version.t: obj/src/internal/version.h
 
