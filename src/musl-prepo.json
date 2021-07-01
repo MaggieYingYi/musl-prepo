@@ -11,14 +11,12 @@
         "_start_c",
         "__set_thread_area",
         "setjmp",
-        "longjmp"
+        "longjmp",
+        "__clone"
       ],
       "fragments":{
-        "1b001e16f7b94e70b0d44714558ea9f5":{
+        "1b001e16f7b94e70b0d44714558ea9f5":{ // _start
           "text":{
-            // .text
-            // .global _start
-            // _start:
             //     xor %rbp,%rbp
             //     mov %rsp,%rdi
             // .weak _DYNAMIC
@@ -33,13 +31,8 @@
             ]
           }
         },
-        "461387b22c520e0c42df3c56ab2aa511":{
+        "461387b22c520e0c42df3c56ab2aa511":{ // __set_thread_area
           "text":{
-           // .text
-           // .global __set_thread_area
-           // .hidden __set_thread_area
-           // .type __set_thread_area,@function
-           // __set_thread_area:
            // 	   mov %rdi,%rsi           /* shift for syscall */
            // 	   movl $0x1002,%edi       /* SET_FS register */
            // 	   movl $158,%eax          /* set fs segment to */
@@ -48,17 +41,8 @@
             "data":"SIn+vwIQAAC4ngAAAA8Fww=="
           }
         },
-        "d8866e5798e0a50c741e3f1cc110e343":{
+        "d8866e5798e0a50c741e3f1cc110e343":{ // setjmp
           "text":{
-           // .global __setjmp
-           // .global _setjmp
-           // .global setjmp
-           // .type __setjmp,@function
-           // .type _setjmp,@function
-           // .type setjmp,@function
-           // __setjmp:
-           // _setjmp:
-           // setjmp:
            // 	mov %rbx,(%rdi)         /* rdi is jmp_buf, move registers onto it */
            // 	mov %rbp,8(%rdi)
            // 	mov %r12,16(%rdi)
@@ -73,15 +57,9 @@
            // 	ret
             "data":"SIkfSIlvCEyJZxBMiW8YTIl3IEyJfyhIjVQkCEiJVzBIixQkSIlXODHAww=="
           }
-	},
-        "9d160afa2ae306a8827cb8fed42d82cc":{
+        },
+        "9d160afa2ae306a8827cb8fed42d82cc":{ //longjmp
           "text":{
-           // .global _longjmp
-           // .global longjmp
-           // .type _longjmp,@function
-           // .type longjmp,@function
-           // _longjmp:
-           // longjmp:
            // 	xor %eax,%eax
            // 	cmp $1,%esi             /* CF = val ? 0 : 1 */
            // 	adc %esi,%eax           /* eax = val + !val */
@@ -94,6 +72,34 @@
            // 	mov 48(%rdi),%rsp
            // 	jmp *56(%rdi)           /* goto saved address without altering rsp */
             "data":"McCD/gER8EiLH0iLbwhMi2cQTItvGEyLdyBMi38oSItnMP9nOA=="
+          }
+        },
+        "424c81f9f233a916a0786db40b288b5f":{ // __clone
+          "text":{
+           // 	xor %eax,%eax
+           // 	mov $56,%al
+           // 	mov %rdi,%r11
+           // 	mov %rdx,%rdi
+           // 	mov %r8,%rdx
+           // 	mov %r9,%r8
+           // 	mov 8(%rsp),%r10
+           // 	mov %r11,%r9
+           // 	and $-16,%rsi
+           // 	sub $8,%rsi
+           // 	mov %rcx,(%rsi)
+           // 	syscall
+           // 	test %eax,%eax
+           // 	jnz 1f
+           // 	xor %ebp,%ebp
+           // 	pop %rdi
+           // 	call *%r9
+           // 	mov %eax,%edi
+           // 	xor %eax,%eax
+           // 	mov $60,%al
+           // 	syscall
+           // 	hlt
+           // 1:	ret
+            "data":"McCwOEmJ+0iJ10yJwk2JyEyLVCQITYnZSIPm8EiD7ghIiQ4PBYXAdQ8x7V9B/9GJxzHAsDwPBfTD"
           }
         }
       },
@@ -120,6 +126,12 @@
           "triple":0, //"x86_64-pc-linux-gnu-repo"
           "definitions":[
             {"digest":"9d160afa2ae306a8827cb8fed42d82cc","name":6,"linkage":"external"} //"longjmp"
+          ]
+        },
+        "24d6c5a06191cf4bc70ba5c414005d62":{
+          "triple":0, //"x86_64-pc-linux-gnu-repo"
+          "definitions":[
+            {"digest":"424c81f9f233a916a0786db40b288b5f","name":7,"linkage":"external","visibility":"hidden"} //"__clone"
           ]
         }
       }
