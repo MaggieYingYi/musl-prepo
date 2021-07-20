@@ -464,6 +464,8 @@ pid_t gettid(void);
 #define _CS_V6_ENV	1148
 #define _CS_V7_ENV	1149
 
+#define __environ environ
+
 #ifdef __cplusplus
 }
 #endif

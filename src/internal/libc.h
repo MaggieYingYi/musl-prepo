@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <limits.h>
 
+#define __progname program_invocation_short_name
+#define __progname_full program_invocation_name
+
 struct __locale_map;
 
 struct __locale_struct {

@@ -252,6 +252,7 @@ hidden long double __tanl(long double, long double, int);
 hidden long double __polevll(long double, const long double *, int);
 hidden long double __p1evll(long double, const long double *, int);
 
+#define __signgam signgam
 extern int __signgam;
 hidden double __lgamma_r(double, int *);
 hidden float __lgammaf_r(float, int *);

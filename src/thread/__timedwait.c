@@ -26,8 +26,7 @@ static int __futex4_cp(volatile void *addr, int op, int val, const struct timesp
 	return __syscall_cp(SYS_futex, addr, op & ~FUTEX_PRIVATE, val, to);
 }
 
-static volatile int dummy = 0;
-weak_alias(dummy, __eintr_valid_flag);
+weak volatile int __eintr_valid_flag = 0;
 
 int __timedwait_cp(volatile int *addr, int val,
 	clockid_t clk, const struct timespec *at, int priv)

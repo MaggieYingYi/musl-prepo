@@ -13,13 +13,13 @@
 #define realloc undef
 #define free undef
 
+#define __timezone timezone
+#define __daylight daylight
+#define __tzname tzname
+
 long  __timezone = 0;
 int   __daylight = 0;
 char *__tzname[2] = { 0, 0 };
-
-weak_alias(__timezone, timezone);
-weak_alias(__daylight, daylight);
-weak_alias(__tzname, tzname);
 
 static char std_name[TZNAME_MAX+1];
 static char dst_name[TZNAME_MAX+1];

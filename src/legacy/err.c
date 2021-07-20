@@ -3,6 +3,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#define __progname program_invocation_short_name
+
 extern char *__progname;
 
 void vwarn(const char *fmt, va_list ap)
