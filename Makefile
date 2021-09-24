@@ -373,6 +373,9 @@ include/linux/futex.h: src/internal/futex.h
 	mkdir -p include/linux
 	cp -f $< $@
 
+
+install-repo-headers: install-headers $(LINUX_INCLUDES:include/%=$(DESTDIR)$(includedir)/%)
+
 install-ticket-libs: $(ALL_TICKET_LIBS:lib/%=$(DESTDIR)$(libdir)/%)
 
 #
