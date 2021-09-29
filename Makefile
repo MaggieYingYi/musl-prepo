@@ -379,11 +379,12 @@ install-ticket-libs: $(ALL_TICKET_LIBS:lib/%=$(DESTDIR)$(libdir)/%)
 # YY: generate the ELF library from the repo ticket files using the repo2oj tool.
 #
 
+utils_dir ?= /usr/share/repo
 CRT_REPO2OBJS = $(CRT_TICKETS:.t=.t.o)
 CRT_REPO2OBJ_LIBS = $(addprefix lib/,$(notdir $(CRT_REPO2OBJS)))
 STATIC_REPO2OBJ_LIBS = lib/libc_elf.a
 ALL_REPO2OBJ_LIBS= $(CRT_REPO2OBJ_LIBS) $(STATIC_REPO2OBJ_LIBS)
-ARCHIVE = /usr/share/repo/archive.py
+ARCHIVE = $(utils_dir)/archive.py
 REPO2OBJ_CMD = repo2obj -o $@ $<
 
 .PRECIOUS: obj/crt/%.t.o
