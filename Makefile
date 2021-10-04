@@ -8,6 +8,11 @@
 # Do not make changes here.
 #
 
+# PH: Added repofile. This the name of the prepo to which output will be
+# written. The default may be overridden by specifying REPOFILE=<path> on the
+# command line.
+REPOFILE ?= clang.db
+
 srcdir = .
 exec_prefix = /usr/local
 bindir = $(exec_prefix)/bin
@@ -230,7 +235,7 @@ musl-%.tar.gz: .git
 endif
 #YY: added include/linux and clang.db.
 clean:
-	rm -rf obj lib include/linux clang.db
+	rm -rf obj lib include/linux $(REPOFILE)
 
 distclean: clean
 	rm -f config.mak
@@ -282,8 +287,6 @@ JSON_TICKET = obj/src/thread/__set_thread_area.t \
               obj/src/setjmp/x86_64/setjmp.t \
               obj/src/thread/x86_64/clone.t
 JSON_CRT_TICKET = obj/crt/crt1_asm.t
-DB = lib/clang.db
-TEXTUAL_DB = lib/musl-prepo.json
 
 LIBC_TICKETS = $(JSON_TICKET) $(filter obj/src/%,$(ALL_TICKETS)) $(filter obj/compat/%,$(ALL_TICKETS))
 CRT_TICKETS = $(JSON_CRT_TICKET) $(filter obj/crt/%,$(ALL_TICKETS))
@@ -293,36 +296,37 @@ LINUX_INCLUDES = include/linux/futex.h include/linux/version.h
 
 CRT_TICKET_LIBS = $(addprefix lib/,$(notdir $(CRT_TICKETS)))
 STATIC_TICKET_LIBS = lib/libc_repo.a
-ALL_TICKET_LIBS = $(CRT_TICKET_LIBS) $(STATIC_TICKET_LIBS) $(TEXTUAL_DB) $(DB)
+ALL_TICKET_LIBS = $(CRT_TICKET_LIBS) $(STATIC_TICKET_LIBS) $(REPOFILE)
 
 all-repo:
-	$(MAKE) clang.db
+	$(MAKE) $(REPOFILE)
 	$(MAKE) repo-installs
 
 repo-installs: $(ALL_TICKET_LIBS) $(LINUX_INCLUDES)
 
-clang.db: src/musl-prepo.json
+$(REPOFILE): src/musl-prepo.json
 	-rm -f $@
 	pstore-import $@ $<
 
-$(JSON_CRT_TICKET): clang.db
-	mkdir -p obj/crt
+
+$(JSON_CRT_TICKET): $(REPOFILE)
+	mkdir -p $(dir $@)
 	repo-create-ticket --output=$@ --repo=$< 0d89c794f89f75747df70d0f6b2832ed
 
-obj/src/thread/__set_thread_area.t: clang.db
-	mkdir -p obj/src/thread
+obj/src/thread/__set_thread_area.t: $(REPOFILE)
+	mkdir -p $(dir $@)
 	repo-create-ticket --output=$@ --repo=$< 61823da085f534c947264e1497f73741
 
-obj/src/setjmp/x86_64/longjmp.t: clang.db
-	mkdir -p obj/src/setjmp/x86_64
+obj/src/setjmp/x86_64/longjmp.t: $(REPOFILE)
+	mkdir -p $(dir $@)
 	repo-create-ticket --output=$@ --repo=$< b4969a1aad5e095bfdb567c8929359a2
 
-obj/src/setjmp/x86_64/setjmp.t: clang.db
-	mkdir -p obj/src/setjmp/x86_64
+obj/src/setjmp/x86_64/setjmp.t: $(REPOFILE)
+	mkdir -p $(dir $@)
 	repo-create-ticket --output=$@ --repo=$< 140eae3767a12b28780d48ef2e02a69e
 
-obj/src/thread/x86_64/clone.t: clang.db
-	mkdir -p obj/src/thread/x86_64/
+obj/src/thread/x86_64/clone.t: $(REPOFILE)
+	mkdir -p $(dir $@)
 	repo-create-ticket --output=$@ --repo=$< 24d6c5a06191cf4bc70ba5c414005d62
 
 obj/src/internal/version.t: obj/src/internal/version.h
@@ -358,12 +362,6 @@ $(STATIC_TICKET_LIBS): $(ATICKETS)
 
 lib/%.t: obj/crt/%.t
 	cp $< $@
-
-$(DB): clang.db $(STATIC_TICKET_LIBS)
-	cp clang.db $@
-
-$(TEXTUAL_DB): clang.db $(STATIC_TICKET_LIBS)
-	pstore-export clang.db > $@
 
 include/linux/version.h: /usr/include/linux/version.h
 	mkdir -p include/linux
