@@ -287,7 +287,6 @@ JSON_TICKET = obj/src/thread/__set_thread_area.t \
               obj/src/setjmp/x86_64/setjmp.t \
               obj/src/thread/x86_64/clone.t
 JSON_CRT_TICKET = obj/crt/crt1_asm.t
-TEXTUAL_DB = lib/musl-prepo.json
 
 LIBC_TICKETS = $(JSON_TICKET) $(filter obj/src/%,$(ALL_TICKETS)) $(filter obj/compat/%,$(ALL_TICKETS))
 CRT_TICKETS = $(JSON_CRT_TICKET) $(filter obj/crt/%,$(ALL_TICKETS))
@@ -363,9 +362,6 @@ $(STATIC_TICKET_LIBS): $(ATICKETS)
 
 lib/%.t: obj/crt/%.t
 	cp $< $@
-
-$(TEXTUAL_DB): $(REPOFILE) $(STATIC_TICKET_LIBS)
-	pstore-export $(REPOFILE) > $@
 
 include/linux/version.h: /usr/include/linux/version.h
 	mkdir -p include/linux
