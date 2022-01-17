@@ -1,36 +1,37 @@
 # Musl Libc with Program Repository Support
 
-This git repository contains a copy of musl libc (forked from [musl-libc@`cfdfd5ea`](http://git.musl-libc.org/cgit/musl/commit/?id=cfdfd5ea3ce14c6abf7fb22a531f3d99518b5a1b) with work-in-progress modifications to output to a Program Repository.
-
-Our approach here will be to [port musl libc](http://wiki.musl-libc.org/wiki/Porting) to the [program repository](https://github.com/SNSystems/llvm-project-prepo).
+This git repository contains a copy of musl libc (forked from [musl-libc@`cfdfd5ea`](http://git.musl-libc.org/cgit/musl/commit/?id=cfdfd5ea3ce14c6abf7fb22a531f3d99518b5a1b)
+with modifications to output to a [Program Repository](https://github.com/SNSystems/llvm-project-prepo).
 
 ## Build musl-libc with the Program Repository Compiler
 
-First create the [llvm-prepo container](https://hub.docker.com/r/paulhuggett/llvm-prepo), then use the following series of commands to install various third-party tools on which the build depends.
-```
+First create the [llvm-prepo container](https://hub.docker.com/r/sndevelopment/llvm-prepo), then install the tools on which the build depends:
+
+```bash
 sudo apt-get update
 sudo apt-get install -y git python
 ```
+
 Clone the musl-prepo project via:
+
+```bash
+git clone https://github.com/SNSystems/musl-prepo
 ```
-git clone --depth=1 https://github.com/MaggieYingYi/musl-prepo.git
-```
-Then configure via:
-```
+
+Then configure and build musl-prepo:
+
+```bash
 ./configure --disable-shared --prefix=~/musl
+make -j $(nproc)
 ```
-Perform the build of musl-prepo.
-```
-make -j 8
-```
+
 Finally, install musl-prepo.
-```
+
+```bash
 make install
 ```
 
 # Musl Libc
-
-    musl libc
 
 musl, pronounced like the word "mussel", is an MIT-licensed
 implementation of the standard C library targetting the Linux syscall
@@ -49,6 +50,4 @@ glibc functionality.
 For basic installation instructions, see the included INSTALL file.
 Information on full musl-targeted compiler toolchains, system
 bootstrapping, and Linux distributions built on musl can be found on
-the project website:
-
-    http://www.musl-libc.org/
+the [project website](http://www.musl-libc.org/).
