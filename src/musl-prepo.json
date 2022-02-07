@@ -5,7 +5,7 @@
     {
       // transaction #1
       "names":[
-        "x86_64-pc-linux-gnu-repo",
+        "x86_64-pc-linux-musl-repo",
         "_DYNAMIC",
         "_start",
         "_start_c",
@@ -104,32 +104,36 @@
         }
       },
       "compilations":{
+        "d3540c32449fa62681dc5c22fbc2a353":{
+          "triple":0, //"x86_64-pc-linux-musl-repo"
+          "definitions":[ ]
+        },
         "0d89c794f89f75747df70d0f6b2832ed":{
-          "triple":0, //"x86_64-pc-linux-gnu-repo"
+          "triple":0, //"x86_64-pc-linux-musl-repo"
           "definitions":[
             {"digest":"1b001e16f7b94e70b0d44714558ea9f5","name":2,"linkage":"external"} //"_start"
           ]
         },
         "61823da085f534c947264e1497f73741":{
-          "triple":0, //"x86_64-pc-linux-gnu-repo"
+          "triple":0, //"x86_64-pc-linux-musl-repo"
           "definitions":[
             {"digest":"461387b22c520e0c42df3c56ab2aa511","name":4,"linkage":"external","visibility":"hidden"} //"__set_thread_area"
           ]
         },
         "140eae3767a12b28780d48ef2e02a69e":{
-          "triple":0, //"x86_64-pc-linux-gnu-repo"
+          "triple":0, //"x86_64-pc-linux-musl-repo"
           "definitions":[
             {"digest":"d8866e5798e0a50c741e3f1cc110e343","name":5,"linkage":"external"} //"setjmp"
           ]
         },
         "b4969a1aad5e095bfdb567c8929359a2":{
-          "triple":0, //"x86_64-pc-linux-gnu-repo"
+          "triple":0, //"x86_64-pc-linux-musl-repo"
           "definitions":[
             {"digest":"9d160afa2ae306a8827cb8fed42d82cc","name":6,"linkage":"external"} //"longjmp"
           ]
         },
         "24d6c5a06191cf4bc70ba5c414005d62":{
-          "triple":0, //"x86_64-pc-linux-gnu-repo"
+          "triple":0, //"x86_64-pc-linux-musl-repo"
           "definitions":[
             {"digest":"424c81f9f233a916a0786db40b288b5f","name":7,"linkage":"external","visibility":"hidden"} //"__clone"
           ]
