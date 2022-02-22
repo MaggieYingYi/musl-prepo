@@ -296,7 +296,7 @@ LINUX_INCLUDES = include/linux/futex.h include/linux/version.h
 
 CRT_TICKET_LIBS = $(addprefix lib/,$(notdir $(CRT_TICKETS)))
 STATIC_TICKET_LIBS = lib/libc_repo.a
-ALL_TICKET_LIBS = $(CRT_TICKET_LIBS) $(STATIC_TICKET_LIBS) $(REPOFILE)
+ALL_TICKET_LIBS = $(CRT_TICKET_LIBS) $(STATIC_TICKET_LIBS) $(EMPTY_LIBS) $(REPOFILE)
 
 all-repo:
 	$(MAKE) $(REPOFILE)
