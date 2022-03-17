@@ -103,7 +103,9 @@ static void *__simple_malloc(size_t n)
 	return p;
 }
 
-weak_alias(__simple_malloc, __libc_malloc_impl);
+// PH: temporary eliminate use of weak-alias until the repo tools fully support
+// symbol aliasing.
+// weak_alias(__simple_malloc, __libc_malloc_impl);
 
 void *__libc_malloc(size_t n)
 {
