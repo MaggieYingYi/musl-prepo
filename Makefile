@@ -344,7 +344,7 @@ $(NOSSP_TICKETS): CFLAGS_ALL += $(CFLAGS_NOSSP)
 
 $(CRT_TICKETS): CFLAGS_ALL += -DCRT
 
-$(ALL_TICKETS) $(CRT_TICKETS):  CFLAGS_ALL +=  -target x86_64-pc-linux-gnu-repo
+$(ALL_TICKETS) $(CRT_TICKETS):  CFLAGS_ALL +=  -target x86_64-pc-linux-musl-repo
 
 obj/%.t: $(srcdir)/%.s
 	$(AS_CMD)
